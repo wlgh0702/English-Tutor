@@ -1,0 +1,22 @@
+# Gradle
+.gradle/
+build/
+
+# IntelliJ
+.idea/
+*.iml
+out/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# local config
+.env
+application-local.properties
+application-local.yml
+src/main/resources/application-local.properties
+src/main/resources/application-local.yml
