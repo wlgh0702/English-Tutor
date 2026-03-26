@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import type { AxiosError } from 'axios';
 import { generateSentences } from '../api/sentenceApi';
 
 type SentenceItem = {
@@ -22,7 +23,10 @@ const generate = async () => {
         result.value = data.sentences;
     } catch (error) {
         console.error('Error generating sentences:', error);
-        errorMessage.value = error.response?.data?.message || '예문 생성에 실패했습니다. 다시 시도해주세요.';
+        const axiosError = error as AxiosError<{ message?: string }>;
+        errorMessage.value =
+            axiosError.response?.data?.message ||
+            '예문 생성에 실패했습니다. 다시 시도해주세요.';
     }
 }
 </script>
