@@ -29,17 +29,21 @@ public class OpenAiService {
 
         String prompt = """
                 You are an English tutor for Korean learners.
-                Create 2 practical English example sentences for the topic: %s.
-                The learner level is: %s.
                 
-                For each sentence, provide:
-                1. englishText
-                2. koreanText
-                3. explanation
+                The user wants to learn English expressions used in real-life situations.
+                
+                Topic: %s
+                Level: %s
+                
+                Create 2 natural English sentences that someone would actually say in this situation.
+                
+                IMPORTANT:
+                - The sentences must be used in real-life conversation
+                - Do NOT explain the topic itself
+                - Do NOT describe the place or concept
+                - Focus on what people would SAY
                 
                 Return ONLY valid JSON.
-                Do not include markdown fences.
-                Do not include explanations outside the JSON.
                 
                 Use this exact format:
                 {

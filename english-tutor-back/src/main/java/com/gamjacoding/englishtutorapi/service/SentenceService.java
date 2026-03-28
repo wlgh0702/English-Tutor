@@ -4,30 +4,28 @@ import com.gamjacoding.englishtutorapi.domain.Level;
 import com.gamjacoding.englishtutorapi.dto.GenerateSentenceRequest;
 import com.gamjacoding.englishtutorapi.dto.GenerateSentenceResponse;
 import com.gamjacoding.englishtutorapi.dto.SentenceItemResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class SentenceService {
 
+    private final OpenAiService openAiService;
+    private final ObjectMapper objectMapper;
+
     public GenerateSentenceResponse generateSentences(GenerateSentenceRequest request) {
-        String topic = request.getTopic();
-        Level level = request.getLevel();
+        try {
+            String aiJson = openAiService.generateSentenceJson(
+                    request.getTopic(), request.getLevel().name()
+            );
 
-        List<SentenceItemResponse> sentences = List.of(
-                new SentenceItemResponse(
-                        "I'd like a cup of coffee.",
-                        "커피 한 잔 주세요.",
-                        topic + " 상황에서 자주 쓰는 표현"
-                ),
-                new SentenceItemResponse(
-                        "Can I see the menu?",
-                        "메뉴 좀 볼 수 있을까요?",
-                        level + " 난이도 표현"
-                )
-        );
-
-        return new GenerateSentenceResponse(sentences);
+            return objectMapper.readValue(aiJson, GenerateSentenceResponse.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate sentences", e);
+        }
     }
 }

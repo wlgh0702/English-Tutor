@@ -13,13 +13,31 @@ const topic = ref('');
 const level = ref('BEGINNER');
 const result = ref<SentenceItem[]>([]);
 const errorMessage = ref('');
+const loading = ref(false);
+
+const isValidSentenceArray = (data: any): data is SentenceItem[] => {
+    return (
+        Array.isArray(data) &&
+        data.every(
+            (item: any) =>
+            typeof item.englishText === 'string' &&
+            typeof item.koreanText === 'string' &&
+            typeof item.explanation === 'string'
+        )
+    );
+}
 
 const generate = async () => {
     errorMessage.value = '';
     result.value = [];
-    
+    loading.value = true;
+
     try {
         const data = await generateSentences(topic.value, level.value);
+        if(!isValidSentenceArray(data.sentences)) {
+            errorMessage.value = '예문 생성에 실패했습니다. 다시 시도해주세요.';
+            return;
+        }
         result.value = data.sentences;
     } catch (error) {
         console.error('Error generating sentences:', error);
@@ -27,6 +45,8 @@ const generate = async () => {
         errorMessage.value =
             axiosError.response?.data?.message ||
             '예문 생성에 실패했습니다. 다시 시도해주세요.';
+    } finally {
+        loading.value = false;
     }
 }
 </script>
@@ -40,7 +60,7 @@ const generate = async () => {
                 v-model="topic"
                 class="pink-input"
                 type="text"
-                placeholder="주제를 입력하세요"
+                placeholder="상황을 입력해주세요."
             />
 
             <div class="select-wrap">
@@ -51,9 +71,26 @@ const generate = async () => {
                 </select>
             </div>
 
-            <button class="pink-button" @click="generate">생성</button>
-            
-            <p v-if="errorMessage">{{ errorMessage }}</p>
+            <button
+                type="button"
+                class="pink-button"
+                :disabled="loading"
+                @click="generate"
+            >
+                {{ loading ? '생성 중…' : '생성' }}
+            </button>
+
+            <div v-if="loading" class="loading-block" aria-busy="true" aria-live="polite">
+                <div class="loading-bar-track">
+                    <div class="loading-bar-fill" />
+                </div>
+                <div class="loading-row">
+                    <span class="spinner" aria-hidden="true" />
+                    <span class="loading-text">예문을 만드는 중이에요</span>
+                </div>
+            </div>
+
+            <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
 
             <div v-if="result.length > 0">
 
@@ -200,6 +237,89 @@ const generate = async () => {
 
 .pink-button:active {
     transform: translateY(0px);
+}
+
+.pink-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.72;
+    transform: none;
+    filter: none;
+    box-shadow:
+        0 8px 18px rgba(255, 95, 162, 0.18),
+        0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.pink-button:disabled:hover {
+    transform: none;
+    box-shadow:
+        0 8px 18px rgba(255, 95, 162, 0.18),
+        0 2px 8px rgba(0, 0, 0, 0.05);
+    filter: none;
+}
+
+.loading-block {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.loading-bar-track {
+    height: 5px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(255, 95, 162, 0.14);
+}
+
+.loading-bar-fill {
+    height: 100%;
+    width: 38%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #ff86c3, #ff5fa2);
+    animation: loading-bar-slide 1.15s ease-in-out infinite;
+}
+
+@keyframes loading-bar-slide {
+    0% {
+        transform: translateX(-120%);
+    }
+    100% {
+        transform: translateX(320%);
+    }
+}
+
+.loading-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.spinner {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border: 3px solid rgba(255, 95, 162, 0.22);
+    border-top-color: #ff5fa2;
+    border-radius: 50%;
+    animation: spinner-rotate 0.65s linear infinite;
+}
+
+@keyframes spinner-rotate {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(194, 24, 91, 0.88);
+}
+
+.error-text {
+    margin: 0;
+    font-size: 13px;
+    color: #b00020;
+    line-height: 1.45;
 }
 
 .result-title {
